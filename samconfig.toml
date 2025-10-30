@@ -2,12 +2,12 @@ version = 0.1
 
 [default.deploy.parameters]
 stack_name = "weatherio"
-resolve_s3 = true
-s3_prefix = "weatherio"
 region = "ap-south-1"
-confirm_changeset = true
-capabilities = "CAPABILITY_IAM"
-image_repositories = []
+s3_bucket = "weatherio-sam-artifacts-771817872925-ap-south-1"
+capabilities = "CAPABILITY_IAM CAPABILITY_AUTO_EXPAND"
+confirm_changeset = false
+fail_on_empty_changeset = false
+resolve_s3 = false
 
 [default.global.parameters]
 region = "ap-south-1"

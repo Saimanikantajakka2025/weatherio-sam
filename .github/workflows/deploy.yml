@@ -32,15 +32,12 @@ jobs:
       - name: Install AWS SAM CLI
         uses: aws-actions/setup-sam@v2
 
-      # (Optional) Ensure SAM template is valid before deploy
       - name: Validate SAM template
         run: sam validate --region ${{ env.AWS_REGION }}
 
-      # Build SAM application (creates .aws-sam/build)
       - name: Build SAM Application
         run: sam build --use-container
 
-      # Deploy directly using your artifact bucket & root template.yaml
       - name: Deploy to AWS
         run: |
           sam deploy \
@@ -50,5 +47,4 @@ jobs:
             --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
             --region $AWS_REGION \
             --no-confirm-changeset \
-            --no-fail-on-empty-changeset \
-            --resolve-s3 false
+            --no-fail-on-empty-changeset

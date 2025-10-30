@@ -31,3 +31,7 @@ Resources:
         Variables:
           # IMPORTANT when running in Docker: use host.docker.internal to reach your host DB
           MONGO_URI: "mongodb+srv://corpgroupbeintern_db_user:wIUfjZFqCPO0JvIh@cluster0.ve8fl4r.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+Outputs:
+  WeatherioApi:
+    Description: "API Gateway endpoint URL for Weatherio"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

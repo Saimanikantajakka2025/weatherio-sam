@@ -6,41 +6,48 @@ on:
 
 permissions:
   id-token: write   # required for OIDC
-  contents: read    # to checkout
+  contents: read    # to checkout code
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
       AWS_REGION: ap-south-1
-      ARTIFACT_BUCKET: weatherio-sam-artifacts-${{ secrets.AWS_ACCOUNT_ID }}-ap-south-1
+      ARTIFACT_BUCKET: weatherio-sam-artifacts-771817872925-ap-south-1
       STACK_NAME: weatherio
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/WeatherioGithubActionsDeployer
+          role-to-assume: arn:aws:iam::771817872925:role/WeatherioGithubActionsDeployer
           aws-region: ${{ env.AWS_REGION }}
 
-      # (Optional) Sanity: who am I?
-      - name: STS caller identity
+      - name: Verify AWS identity
         run: aws sts get-caller-identity
 
       - name: Install AWS SAM CLI
         uses: aws-actions/setup-sam@v2
 
-      - name: Build
+      # (Optional) Ensure SAM template is valid before deploy
+      - name: Validate SAM template
+        run: sam validate --region ${{ env.AWS_REGION }}
+
+      # Build SAM application (creates .aws-sam/build)
+      - name: Build SAM Application
         run: sam build --use-container
 
-      - name: Package (optional; sam deploy can upload directly)
-        run: sam package --s3-bucket "$ARTIFACT_BUCKET" --output-template-file packaged.yaml
-
-      - name: Deploy
+      # Deploy directly using your artifact bucket & root template.yaml
+      - name: Deploy to AWS
         run: |
           sam deploy \
-            --template-file packaged.yaml \
-            --stack-name "$STACK_NAME" \
+            --template-file template.yaml \
+            --stack-name $STACK_NAME \
+            --s3-bucket $ARTIFACT_BUCKET \
             --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
-            --region "$AWS_REGION"
+            --region $AWS_REGION \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset

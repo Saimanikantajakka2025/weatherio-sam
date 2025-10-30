@@ -1,0 +1,50 @@
+# Node.js dependencies (if applicable)
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Build / output folders
+build/
+dist/
+*.tsbuildinfo
+
+# AWS SAM build artifacts
+.aws-sam/
+packaged.yaml
+
+# Environment / secret files (never commit)
+.env
+.env.*.local
+secrets.json
+
+# OS/editor specific
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Log files
+logs/
+*.log
+
+# Ignoring IDE/system files
+*.swp
+*.tmp
+*.bak
+
+# Ignore packaged artifacts if auto-generated
+coverage/
+*.lcov
+.__pycache__/
+*.py[cod]
+
+# If you have local configuration files
+local.config.json
+
+# ---- But include your infra folder and trust-policy
+!infra/
+infra/trust-policy.json

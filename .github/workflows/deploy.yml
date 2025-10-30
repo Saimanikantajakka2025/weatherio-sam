@@ -1,0 +1,46 @@
+name: Deploy Weatherio (SAM)
+
+on:
+  push:
+    branches: [ "main" ]  # change if your default branch is not main
+
+permissions:
+  id-token: write   # required for OIDC
+  contents: read    # to checkout
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ap-south-1
+      ARTIFACT_BUCKET: weatherio-sam-artifacts-${{ secrets.AWS_ACCOUNT_ID }}-ap-south-1
+      STACK_NAME: weatherio
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/WeatherioGithubActionsDeployer
+          aws-region: ${{ env.AWS_REGION }}
+
+      # (Optional) Sanity: who am I?
+      - name: STS caller identity
+        run: aws sts get-caller-identity
+
+      - name: Install AWS SAM CLI
+        uses: aws-actions/setup-sam@v2
+
+      - name: Build
+        run: sam build --use-container
+
+      - name: Package (optional; sam deploy can upload directly)
+        run: sam package --s3-bucket "$ARTIFACT_BUCKET" --output-template-file packaged.yaml
+
+      - name: Deploy
+        run: |
+          sam deploy \
+            --template-file packaged.yaml \
+            --stack-name "$STACK_NAME" \
+            --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
+            --region "$AWS_REGION"

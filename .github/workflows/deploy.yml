@@ -2,11 +2,11 @@ name: Deploy Weatherio (SAM)
 
 on:
   push:
-    branches: [ "main" ]  # change if your default branch is not main
+    branches: [ "main" ]
 
 permissions:
-  id-token: write   # required for OIDC
-  contents: read    # to checkout code
+  id-token: write
+  contents: read
 
 jobs:
   deploy:
@@ -17,28 +17,56 @@ jobs:
       STACK_NAME: weatherio
 
     steps:
-      - name: Checkout repository
+      # D1. Checkout repository
+      - name: ⬇️ Checkout repository
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials (OIDC)
+      # D2. Setup Node (needed before SAM build)
+      - name: 🟦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      # D3. Install dependencies (creates node_modules)
+      - name: 📦 Install Node dependencies
+        run: npm ci
+        working-directory: .   # <-- change if your template.yaml is in a subfolder
+
+      # D4. Configure AWS credentials (OIDC)
+      - name: 🔐 Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::771817872925:role/WeatherioGithubActionsDeployer
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Verify AWS identity
+      # D5. Verify AWS identity
+      - name: 🧾 Verify AWS identity
         run: aws sts get-caller-identity
 
-      - name: Install AWS SAM CLI
+      # D6. Install AWS SAM CLI
+      - name: 🛠️ Install AWS SAM CLI
         uses: aws-actions/setup-sam@v2
 
-      - name: Validate SAM template
+      # D7. Validate SAM template
+      - name: 🧩 Validate SAM template
         run: sam validate --region ${{ env.AWS_REGION }}
 
-      - name: Build SAM Application
+      # D8. Build SAM application (now dependencies exist)
+      - name: 🏗️ Build SAM Application
         run: sam build --use-container
+        working-directory: .   # <-- adjust if template.yaml is not in repo root
 
-      - name: Deploy to AWS
+      # (Optional) Upload artifact for debugging
+      - name: 🧪 Upload build artifact (optional)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-modules-check
+          path: .aws-sam/build/WeatherApi/node_modules/@codegenie/serverless-express/
+
+      # D9. Deploy to AWS
+      - name: 🚀 Deploy to AWS
         run: |
           sam deploy \
             --template-file template.yaml \
@@ -48,3 +76,4 @@ jobs:
             --region $AWS_REGION \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset
+        working-directory: .

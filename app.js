@@ -11,6 +11,24 @@ const path = require('path');
 try { require('dotenv').config(); } catch (_) {}
 
 const app = express();
+
+const STAGE = process.env.AWS_STAGE || 'Prod'; // default to Prod
+
+app.use((req, res, next) => {
+  // When running behind API Gateway, requests might miss the /Prod prefix
+  if (!req.headers['x-apigateway-event'] && !req.originalUrl.startsWith(`/${STAGE}`)) {
+    // API Gateway calls Lambda with /Prod/path but static HTML can redirect to /
+    return next();
+  }
+
+  // Redirect only if user hits root of API domain (forbidden zone)
+  if (req.path === '/' && !req.originalUrl.startsWith(`/${STAGE}`)) {
+    return res.redirect(`/${STAGE}`);
+  }
+
+  next();
+});
+
 app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));

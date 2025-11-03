@@ -1,13 +1,8 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
-Description: >
-  Weatherio — Serverless Weather API using AWS SAM (Node.js 18.x)
-
 Globals:
   Function:
     Timeout: 20        # was 10
     MemorySize: 512
-    Runtime: nodejs18.x
+    Runtime: nodejs20.x
 
 Resources:
   WeatherApi:
@@ -15,7 +10,7 @@ Resources:
     Properties:
       Handler: lambda.handler
       CodeUri: .
-      Runtime: nodejs18.x
+      Runtime: nodejs20.x
       Events:
         ApiRoot:
           Type: Api

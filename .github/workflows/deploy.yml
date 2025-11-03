@@ -2,11 +2,11 @@ name: Deploy Weatherio (SAM)
 
 on:
   push:
-    branches: [ "main" ]  # change if your default branch is not main
+    branches: [ "main" ]
 
 permissions:
-  id-token: write   # required for OIDC
-  contents: read    # to checkout code
+  id-token: write
+  contents: read
 
 jobs:
   deploy:
@@ -32,16 +32,31 @@ jobs:
       - name: Install AWS SAM CLI
         uses: aws-actions/setup-sam@v2
 
-      - name: Validate SAM template
-        run: sam validate --region ${{ env.AWS_REGION }}
+      - name: Show SAM version
+        run: sam --version
 
+      # Build the app (this installs prod deps into the build folder)
       - name: Build SAM Application
         run: sam build --use-container
 
+      # Optional sanity checks (helpful while debugging)
+      - name: Show built template head
+        run: head -n 20 .aws-sam/build/template.yaml
+
+      - name: Ensure @codegenie/serverless-express is packaged
+        run: |
+          ls -la .aws-sam/build/WeatherApi/node_modules | head -n 50 || true
+          test -d ".aws-sam/build/WeatherApi/node_modules/@codegenie/serverless-express"
+
+      # Validate the BUILT template
+      - name: Validate SAM template (built)
+        run: sam validate --template-file .aws-sam/build/template.yaml --region ${{ env.AWS_REGION }}
+
+      # Deploy the BUILT template
       - name: Deploy to AWS
         run: |
           sam deploy \
-            --template-file template.yaml \
+            --template-file .aws-sam/build/template.yaml \
             --stack-name $STACK_NAME \
             --s3-bucket $ARTIFACT_BUCKET \
             --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \

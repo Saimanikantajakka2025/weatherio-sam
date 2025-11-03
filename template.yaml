@@ -5,9 +5,14 @@ Description: >
 
 Globals:
   Function:
-    Timeout: 20        # was 10
+    Timeout: 20
     MemorySize: 512
     Runtime: nodejs20.x
+  Api:
+    Cors:
+      AllowOrigin: "'*'"
+      AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+      AllowHeaders: "'*'"
 
 Resources:
   WeatherApi:
@@ -29,8 +34,8 @@ Resources:
             Method: ANY
       Environment:
         Variables:
-          # IMPORTANT when running in Docker: use host.docker.internal to reach your host DB
           MONGO_URI: "mongodb+srv://corpgroupbeintern_db_user:wIUfjZFqCPO0JvIh@cluster0.ve8fl4r.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+
 Outputs:
   WeatherioApi:
     Description: "API Gateway endpoint URL for Weatherio"

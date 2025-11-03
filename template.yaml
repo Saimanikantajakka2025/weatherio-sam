@@ -1,3 +1,8 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Weatherio — Serverless Weather API using AWS SAM (Node.js 20.x)
+
 Globals:
   Function:
     Timeout: 20        # was 10
